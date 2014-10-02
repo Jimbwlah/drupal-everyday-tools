@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * @file
+ * The Everyday Tools module houses functions that are useful in every Drupal build that requires
+ * some degree of development. The functions range from string manipulation to theme helpers.
+ *
+ * The functions in this module are for Solr Search
+ *
+ */
+
+
+/*
+ * SOLR space replacement function
+ */
+function replace_space_for_solr($str) {
+  $str = str_replace(' ', '%20', $str);
+  return $str;
+}

@@ -1,0 +1,6 @@
+name = Everyday tools - User
+description = A lightweight module containing helper functions for user actions
+package = "Everyday Tools"
+core = 7.x
+
+dependencies[] = everyday_tools

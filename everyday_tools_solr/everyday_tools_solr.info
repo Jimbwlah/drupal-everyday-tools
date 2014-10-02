@@ -1,0 +1,6 @@
+name = Everyday tools - Solr Search 
+description = A lightweight module containing helper functions for solr Search
+package = "Everyday Tools"
+core = 7.x
+
+dependencies[] = everyday_tools

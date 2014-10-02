@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * The Everyday Tools module houses functions that are useful in every Drupal build that requires
+ * some degree of development. The functions range from string manipulation to theme helpers.
+ 
+ * The functions in this module are for User Actions
+ *
+ */
+
+/*
+ * Set a destination for logging in / out so that users go back to the correct 
+ * pages once they have logged in / out
+ */
+function et_get_user_detination() {
+  $orig_query_string = '';
+  if(filter_input(INPUT_GET, 'orig')) {
+    $orig_query_string = '?destination=' . filter_input(INPUT_GET, 'orig');
+  } else if(current_path()) {
+    $orig_query_string = '?destination=' . current_path();
+  } else if($url_parts) {
+    $orig_query_string = '?destination=' . urlencode($url_parts[0]);
+  }
+  
+  return $orig_query_string;
+}

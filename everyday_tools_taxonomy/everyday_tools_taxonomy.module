@@ -1,0 +1,64 @@
+<?php
+
+/**
+ * @file
+ * The Everyday Tools module houses functions that are useful in every Drupal build that requires
+ * some degree of development. The functions range from string manipulation to theme helpers.
+ *
+ * The functions in this module are for Taxonomy
+ *
+ */
+
+/**
+ * Returns the raw term name for a given tid
+ * @param int $tid
+ * @return string
+ */
+function get_term_name($tid) {
+  if ($tid <> 0) {
+    $term = taxonomy_term_load($tid);
+    if ($term) {
+      return $term->name;
+    }
+    else {
+      return $tid;
+    }
+  }
+  else {
+    return '';
+  }
+}
+
+/**
+ * Returns the taxonomy term url for a given tid
+ * @param int $tid
+ * @return url
+ */
+function get_term_url($tid) {
+  return '/' . drupal_lookup_path('alias', 'taxonomy/term/' . $tid);
+}
+
+/**
+ * Returns the taxonomy terms tid
+ * @param string $name - taxonomy item
+ * @param int $vid - Vocabulary ID
+ * return int - ID of the taxonomy term
+ */
+function get_tid_from_name($name, $vid) {
+  static $data = array();
+
+  if (isset($data[$vid]) && isset($data[$vid][$name])) {
+    return $data[$vid][$name];
+  }
+  else {
+    $tid = db_query("SELECT tid FROM {taxonomy_term_data} WHERE vid = :vid AND name = :name", array(':vid' => $vid, ':name' => $name))->fetchField();
+    if (!$tid) {
+      return FALSE;
+    }
+    if (!array_key_exists($vid, $data)) {
+      $data[$vid] = array();
+    }
+    $data[$vid][$name] = $tid;
+    return $tid;
+  }
+}

@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * @file
+ * The Everyday Tools module houses functions that are useful in every Drupal build that requires
+ * some degree of development. The functions range from string manipulation to theme helpers.
+ *
+ * The functions in this module are for Site Performance
+ *
+ */
+
+/**
+* Check the pages load time
+* Usage $loadtime = new loadTime();
+*/
+class loadTime{
+  private $time_start = 0;
+  private $time_end = 0;
+  private $time = 0;
+  
+  public function __construct() {
+    $this->time_start= microtime(true);
+  }
+  
+  public function __destruct(){
+    $this->time_end = microtime(true);
+    $this->time = ($this->time_end - $this->time_start) / 60;
+    echo '<div class="loadTime">Loaded in ' . $this->time . ' seconds</div>';
+  }
+}
