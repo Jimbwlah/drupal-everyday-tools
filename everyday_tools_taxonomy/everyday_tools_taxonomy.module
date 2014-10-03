@@ -2,9 +2,8 @@
 
 /**
  * @file
- * The Everyday Tools module houses functions that are useful in every Drupal build that requires
- * some degree of development. The functions range from string manipulation to theme helpers.
- *
+ * The Everyday Tools module was created to house functions that are useful in every Drupal build that requires
+ * some degree of development. 
  * The functions in this module are for Taxonomy
  *
  */
@@ -14,7 +13,7 @@
  * @param int $tid
  * @return string
  */
-function get_term_name($tid) {
+function everyday_tools_get_term_name($tid) {
   if ($tid <> 0) {
     $term = taxonomy_term_load($tid);
     if ($term) {
@@ -34,7 +33,7 @@ function get_term_name($tid) {
  * @param int $tid
  * @return url
  */
-function get_term_url($tid) {
+function everyday_tools_get_term_url($tid) {
   return '/' . drupal_lookup_path('alias', 'taxonomy/term/' . $tid);
 }
 
@@ -44,7 +43,7 @@ function get_term_url($tid) {
  * @param int $vid - Vocabulary ID
  * return int - ID of the taxonomy term
  */
-function get_tid_from_name($name, $vid) {
+function everyday_tools_get_tid_from_name($name, $vid) {
   static $data = array();
 
   if (isset($data[$vid]) && isset($data[$vid][$name])) {
@@ -61,4 +60,36 @@ function get_tid_from_name($name, $vid) {
     $data[$vid][$name] = $tid;
     return $tid;
   }
+}
+
+/**
+ * function to know if a term exists in a vocab or not.
+ * @param
+ *   $vocab_machine_name takes vocabulary machine name as parameter in which you want to find a term.
+ *   $tid term id which you want to know if exists or not in the given vocab.
+ * @return
+ *   1 tid exists in the vocab.
+ *   0 tid does not exist.
+ *  -1 no vocab found with the given machine name
+ *   2 vocab has no terms inside.
+ */
+function everyday_tools_check_term_exists_in_vocab($vocab_machine_name, $tid) {
+  $vocab = taxonomy_vocabulary_machine_name_load($vocab_machine_name);
+  if (is_object($vocab)) {
+    $term_tree = taxonomy_get_tree($vocab->vid);
+    if (is_array($term_tree) && !empty($term_tree)) {
+      foreach ($term_tree as $key => $value) {
+        $vocab_tids[] = $value->tid;
+      }
+      if (in_array($tid, $vocab_tids)) {
+        return 1;
+      } else {
+        return 0;
+      }
+    } if (empty($term_tree)) {
+      return 2;
+    }
+  }
+  else
+    return -1;
 }

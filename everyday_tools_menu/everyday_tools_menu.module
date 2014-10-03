@@ -1,0 +1,158 @@
+<?php
+
+/**
+ * @file
+ * The Everyday Tools module was created to house functions that are useful in every Drupal build that requires
+ * some degree of development. 
+ * The functions in this module are for Menus
+ *
+ */
+
+/**
+ * Returns a mlid for a given page from the given menu. This can be useful for finding information about the menu item
+ * or finding its child pages. NOTE: this function will only return the first occurance of the item in the menu.
+ *
+ * @param string $path - The Drupal path to the page
+ * @param string $menu - Optional - The menu to search
+ * @return FALSE / int (mlid)
+ */
+function everyday_tools_get_mlid($path, $menu = 'main-menu') {
+  $mlid = NULL;
+
+  $query = db_select('menu_links', 'ml');
+  $query->condition('ml.link_path', $path, '=')
+        ->condition('ml.menu_name', $menu, '=')
+        ->fields('ml', array('mlid'));
+
+  $result = $query->execute()->fetchCol();
+  if ($result) {
+    $mlid = $result[0];
+  }
+
+  return $mlid;
+}
+
+/**
+ * Finds the mlid in the given menu
+ * @param integer $mlid
+ * @param array $link
+ * @return array | null
+ */
+function everyday_tools_find_mlid_in_menu($mlid, $link) {
+  if ($mlid == $link['link']['mlid']) {
+      return $link;
+  }
+  else {
+    foreach ($link['below'] as $k => $item) {
+      $response = everyday_tools_find_mlid_in_menu($mlid, $item);
+      if ($response) {
+        return $response;
+      }
+    }
+  }
+}
+
+/**
+ * Returns an array of the child pages of the given mlid. Use get_mlid() to get the mlid to search from. This function
+ * is useful for landing pages etc.
+ *
+ * @param int $mlid - The menu link id, probably from get_mlid()
+ * @param string $menu - Optional - The menu to search
+ * @return array
+ */
+function everyday_tools_get_menu_children($mlid, $menu = 'main-menu') {
+  $tree = menu_tree_all_data($menu);
+  $children = array();
+  if ($mlid) {
+    foreach ($tree as $branch) {
+      $check = everyday_tools_find_mlid_in_menu($mlid, $branch);
+
+      if ($check) {
+        $branch = $check;
+        foreach ($branch['below'] as $twig) {
+          $alias = url_parts($twig['link']['link_path']);
+          if ($alias[0] == 'node') {
+            $n = node_load($alias[1]);
+            $children[$n->title . ':' . $n->nid] = $n;
+          }
+        }
+
+        ksort($children);
+      }
+    }
+  }
+
+  return $children;
+}
+
+/**
+ * Helper function for get_menu_children() that recursively search an menu, this should not be called directly.
+ *
+ * @param int $mlid - The menu link id
+ * @param array $link - The menu tree item
+ * @return array | null
+ */
+function _find_mlid_in_menu($mlid, $link) {
+  if ($mlid == $link['link']['mlid']) {
+      return $link;
+  }
+  else {
+    foreach ($link['below'] as $k => $item) {
+      $response = everyday_tools_find_mlid_in_menu($mlid, $item);
+      if ($response) {
+        return $response;
+      }
+    }
+  }
+}
+
+/**
+ * Returns a clean and simple array of the items in a menu, no mess, no fuss.
+ *
+ * @param string $menu - Optional - The menu to return
+ * @return array
+ */
+function everyday_tools_get_clean_menu($menu = 'main-menu') {
+  $menu = menu_tree_all_data($menu);
+  
+  if ($menu) {
+    $menu_clean = array();
+    foreach ($menu as $item) {
+      if (array_key_exists('link', $item) && $item['link']['hidden'] == 0) {
+        $menu_clean[] = everyday_tools_get_clean_menu_item($item);
+      }
+    }
+
+    if ($menu_clean) {
+      return $menu_clean;
+    }
+  }
+  
+  return FALSE;
+}
+
+/**
+ * Helper function for get_clean_menu(). This function should not be called directly.
+ *
+ * @param array $item - The menu tree item
+ * @return array
+ */
+function everyday_tools_get_clean_menu_item($item) {
+  if (array_key_exists('link', $item)) {
+    $link = array(
+      'title' => $item['link']['link_title'],
+      'path' => $item['link']['link_path'],
+      'alias' => drupal_get_path_alias($item['link']['link_path']),
+      'language' => (isset($item['link']['language'])) ? $item['link']['language'] : language_default(),
+      'children' => array(),
+    );
+    
+    if (array_key_exists('below', $item)) {
+      foreach ($item['below'] as $child) {
+        $link['children'][] = everyday_tools_get_clean_menu_item($child);
+      }
+    }
+
+    return $link;
+  }
+}

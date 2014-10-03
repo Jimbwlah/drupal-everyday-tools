@@ -2,5 +2,5 @@ name = Everyday tools - Taxonomy
 description = A lightweight module containing helper functions for taxonomy functions
 package = "Everyday Tools"
 core = 7.x
-
+version = VERSION
 dependencies[] = everyday_tools

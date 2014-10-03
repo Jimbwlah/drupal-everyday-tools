@@ -2,18 +2,77 @@
 
 /**
  * @file
- * The Everyday Tools module houses functions that are useful in every Drupal build that requires
- * some degree of development. The functions range from string manipulation to theme helpers.
- 
+ * The Everyday Tools module was created to house functions that are useful in every Drupal build that requires
+ * some degree of development. 
  * The functions in this module are for User Actions
  *
  */
+
+/**
+ * If the user is an administrator an edit button is displayed
+ * 
+ * @param object $user
+ * @param array $allowed_roles - a list of roles which are to use this button
+ * @return string - An edit button
+ */
+function everyday_tools_show_edit($user, $allowed_roles = array()) {
+  $html = '';
+  
+  if (user_has_role($user, $allowed_roles)) {
+    $path = current_path();
+    
+    if (!strstr($path, 'node/') && !strstr($path, 'taxonomy/')) {
+      $path = '';
+    }
+    else {
+      $language_path = '';
+      if (isset($_SESSION['selected_language']) && $_SESSION['selected_language'] != 'en') {
+        $language_path = $_SESSION['selected_language'] . '/';  
+      }
+      $path = '/' . $path . '/edit?destination=' . $language_path . $path;
+      
+      $html = '<div class="admin"><a class="" href="' . $path . '">Edit this page</a></div>';
+    }
+  }
+  return $html;
+}
+
+/**
+ * Function to check if the currently logged in user has a certain role
+ * 
+ * @global object $user
+ * @param string $role / array $role can be a atring or an array of roles
+ * @return boolean
+ */
+function everyday_tools_user_has_role($user, $role = 'administrator') {
+    
+  if (is_numeric($user->uid) && (intval($user->uid) === 1)) {
+    return TRUE;
+  }
+  
+  if (isset($user->roles)) {
+    if (is_array($role)) {
+      foreach ($role as $user_role) {
+        if (in_array($user_role, $user->roles)) {
+          return TRUE;
+        }
+      }
+    }
+    else {
+      if (in_array($role, $user->roles)) {
+        return TRUE;
+      }
+    }
+  }
+
+  return FALSE;
+}
 
 /*
  * Set a destination for logging in / out so that users go back to the correct 
  * pages once they have logged in / out
  */
-function et_get_user_detination() {
+function everyday_tools_get_user_destination() {
   $orig_query_string = '';
   if(filter_input(INPUT_GET, 'orig')) {
     $orig_query_string = '?destination=' . filter_input(INPUT_GET, 'orig');
@@ -24,4 +83,12 @@ function et_get_user_detination() {
   }
   
   return $orig_query_string;
+}
+
+/*
+ * Duplicate of above function above using correct spelling. We don't want to 
+ * detinate a user
+ */
+function everyday_tools_get_user_detination() {
+  return get_user_destination();
 }
